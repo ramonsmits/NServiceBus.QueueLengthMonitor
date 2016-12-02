@@ -10,10 +10,16 @@ using NServiceBus.Transport;
 
 namespace NServiceBus.QueueLengthMonitor
 {
-    class Monitor
+    public class Monitor
     {
         SourceReports sourceReports = new SourceReports();
         ConcurrentDictionary<string, long> queueLengths = new ConcurrentDictionary<string, long>();
+
+        public Monitor()
+        {
+            Metric.Config
+                .WithHttpEndpoint("http://localhost:7777/QueueLengthMonitor/");
+        }
 
         public Task OnMessage(MessageContext context, IDispatchMessages dispatcher)
         {

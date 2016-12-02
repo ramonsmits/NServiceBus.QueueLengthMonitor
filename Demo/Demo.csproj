@@ -38,6 +38,18 @@
       <HintPath>..\packages\NServiceBus.6.0.2\lib\net452\NServiceBus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NServiceBus.Raw, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.Raw.0.1.0\lib\net452\NServiceBus.Raw.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NServiceBus.Transports.RabbitMQ, Version=4.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.RabbitMQ.4.2.0\lib\net452\NServiceBus.Transports.RabbitMQ.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="RabbitMQ.Client, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
+      <HintPath>..\packages\RabbitMQ.Client.4.1.0\lib\net451\RabbitMQ.Client.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -59,6 +71,10 @@
     <ProjectReference Include="..\NServiceBus.QueueLengthMonitor.PlugIn\NServiceBus.QueueLengthMonitor.PlugIn.csproj">
       <Project>{675fc489-ef50-42fa-ab9b-d7462e02434e}</Project>
       <Name>NServiceBus.QueueLengthMonitor.PlugIn</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NServiceBus.QueueLengthMonitor\NServiceBus.QueueLengthMonitor.csproj">
+      <Project>{0fe43f9e-0d23-42a5-bfe9-e92e4905d1dc}</Project>
+      <Name>NServiceBus.QueueLengthMonitor</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NServiceBus;
+using NServiceBus.Features;
 using NServiceBus.QueueLengthMonitor.PlugIn;
+using NServiceBus.Raw;
 
 namespace Demo
 {
@@ -18,6 +17,8 @@ namespace Demo
 
         static async Task Start()
         {
+            var monitor = await StartMonitor().ConfigureAwait(false);
+
             var receiverConfig = PrepareConfiguration("Receiver");
             var anotherReceiverConfig = PrepareConfiguration("AnotherReceiver");
             var senderConfig = PrepareConfiguration("Sender");
@@ -41,6 +42,7 @@ namespace Demo
             await sender.Stop().ConfigureAwait(false);
             await receiver.Stop().ConfigureAwait(false);
             await anotherReceiver.Stop().ConfigureAwait(false);
+            await monitor.Stop();
         }
 
         static EndpointConfiguration PrepareConfiguration(string endpointName)
@@ -50,9 +52,29 @@ namespace Demo
             config.SendFailedMessagesTo("error");
             config.LimitMessageProcessingConcurrencyTo(1);
             config.EnableQueueLengthMonitorPlugin("QueueLengthMonitor");
-            var routing = config.UseTransport<MsmqTransport>().Routing();
-            routing.RegisterPublisher(typeof(MyEvent), "Sender");
+            config.DisableFeature<AutoSubscribe>();
+            ConfigureTransportAndRouting(config);
             return config;
+        }
+
+        static async Task<IRawEndpointInstance> StartMonitor()
+        {
+            var monitor = new NServiceBus.QueueLengthMonitor.Monitor();
+            var config = RawEndpointConfiguration.Create("QueueLengthMonitor", monitor.OnMessage);
+            //config.UseTransport<MsmqTransport>();
+            config.UseTransport<RabbitMQTransport>().ConnectionString("host=localhost");
+            config.SendFailedMessagesTo("error");
+
+            var endpoint = await RawEndpoint.Start(config);
+            return endpoint;
+        }
+
+
+        static void ConfigureTransportAndRouting(EndpointConfiguration config)
+        {
+            config.UseTransport<RabbitMQTransport>().ConnectionString("host=localhost");
+            //var routing = config.UseTransport<MsmqTransport>().Routing();
+            //routing.RegisterPublisher(typeof(MyEvent), "Sender");
         }
 
         static async Task Sender(IMessageSession session, CancellationToken token)
@@ -111,7 +133,7 @@ namespace Demo
     {
         public Task Handle(MyEvent message, IMessageHandlerContext context)
         {
-            return Task.Delay(7000);
+            return Task.Delay(2000);
         }
     }
 
