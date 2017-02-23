@@ -17,7 +17,7 @@ namespace Demo
 
         static async Task Start()
         {
-            var monitor = await StartMonitor().ConfigureAwait(false);
+            //var monitor = await StartMonitor().ConfigureAwait(false);
 
             var receiverConfig = PrepareConfiguration("Receiver");
             var anotherReceiverConfig = PrepareConfiguration("AnotherReceiver");
@@ -42,7 +42,7 @@ namespace Demo
             await sender.Stop().ConfigureAwait(false);
             await receiver.Stop().ConfigureAwait(false);
             await anotherReceiver.Stop().ConfigureAwait(false);
-            await monitor.Stop();
+            //await monitor.Stop();
         }
 
         static EndpointConfiguration PrepareConfiguration(string endpointName)
@@ -61,8 +61,8 @@ namespace Demo
         {
             var monitor = new NServiceBus.QueueLengthMonitor.Monitor();
             var config = RawEndpointConfiguration.Create("QueueLengthMonitor", monitor.OnMessage);
-            //config.UseTransport<MsmqTransport>();
-            config.UseTransport<RabbitMQTransport>().ConnectionString("host=localhost");
+            config.UseTransport<MsmqTransport>();
+            //config.UseTransport<RabbitMQTransport>().ConnectionString("host=localhost");
             config.SendFailedMessagesTo("error");
 
             var endpoint = await RawEndpoint.Start(config);
@@ -72,9 +72,9 @@ namespace Demo
 
         static void ConfigureTransportAndRouting(EndpointConfiguration config)
         {
-            config.UseTransport<RabbitMQTransport>().ConnectionString("host=localhost");
-            //var routing = config.UseTransport<MsmqTransport>().Routing();
-            //routing.RegisterPublisher(typeof(MyEvent), "Sender");
+            //config.UseTransport<RabbitMQTransport>().ConnectionString("host=localhost");
+            var routing = config.UseTransport<MsmqTransport>().Routing();
+            routing.RegisterPublisher(typeof(MyEvent), "Sender");
         }
 
         static async Task Sender(IMessageSession session, CancellationToken token)
