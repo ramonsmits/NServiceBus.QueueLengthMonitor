@@ -5,6 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Metrics;
+using Metrics.Core;
+using Metrics.Json;
+using Metrics.MetricData;
 using Newtonsoft.Json;
 using NServiceBus.Transport;
 
@@ -12,74 +15,101 @@ namespace NServiceBus.QueueLengthMonitor
 {
     public class Monitor
     {
-        SourceReports sourceReports = new SourceReports();
-        ConcurrentDictionary<string, long> queueLengths = new ConcurrentDictionary<string, long>();
+        MetricsContext rootContext;
+        NServiceBusReceivedMetricContext receivedMetricContext;
+        MetricsContext receiveLinkState;
+        MetricsContext sendLinkState;
+        MetricsContext linkState;
+        MetricsContext queueState;
+        Unit messagesUnit = Unit.Custom("Messages");
+        Unit sequenceUnit = Unit.Custom("Sequence");
 
-        public Monitor()
+        public Monitor(MetricsContext rootContext)
         {
-            Metric.Config
-                .WithHttpEndpoint("http://localhost:7777/QueueLengthMonitor/");
+            this.rootContext = rootContext;
+            receivedMetricContext = new NServiceBusReceivedMetricContext();
+            rootContext.Advanced.AttachContext("NServiceBus.Endpoints", receivedMetricContext);
+            receiveLinkState = rootContext.Context("ReceivedLinkState");
+            sendLinkState = rootContext.Context("SentLinkState");
+            linkState = rootContext.Context("LinkState");
+            queueState = rootContext.Context("QueueState");
         }
 
         public Task OnMessage(MessageContext context, IDispatchMessages dispatcher)
         {
-            string type;
-            if (!context.Headers.TryGetValue("NServiceBus.QueueLength.Type", out type))
+            var metricsData = Deserialize<JsonMetricsContext>(context);
+
+            receivedMetricContext.Consume(metricsData.ToMetricsData());
+
+            var sendSideLinkStateByKey = metricsData.Gauges.Where(g => g.Tags.Contains("type:sent")).GroupBy(g => g.Name);
+            foreach (var keyState in sendSideLinkStateByKey)
             {
-                return Task.CompletedTask;
+                var sequenceKey = keyState.Key;
+                sendLinkState.Gauge(sequenceKey, () => GetHighestSequenceNumber(sequenceKey, receivedMetricContext, "type:sent"), sequenceUnit);
             }
-            if (type == "source-report")
+
+            var queues = new HashSet<string>();
+            var receiveSideLinkStateByKey = metricsData.Gauges.Where(g => g.Tags.Contains("type:received")).GroupBy(g => g.Name);
+            foreach (var keyState in receiveSideLinkStateByKey)
             {
-                var report = Deserialize<SourceReport>(context);
-                sourceReports.Add(report, DateTime.UtcNow);
+                var sequenceKey = keyState.Key;
+                var queue = QueueTag(keyState.First().Tags);
+                queues.Add(queue);
+                receiveLinkState.Gauge(sequenceKey, () => GetHighestSequenceNumber(sequenceKey, receivedMetricContext, "type:received"), sequenceUnit, new MetricTags($"queue:{queue}"));
+                linkState.Gauge(sequenceKey, () => GetNumberOfInFlightMessages(sequenceKey, receiveLinkState, sendLinkState), messagesUnit, new MetricTags($"queue:{queue}"));
             }
-            else if (type == "destination-report")
+
+            foreach (var queue in queues)
             {
-                var report = Deserialize<DestinationReport>(context);
-
-                var stateSnapshot = sourceReports.GetSequenceState(report, DateTime.UtcNow);
-
-                var length = Calculate(stateSnapshot);
-
-                queueLengths.AddOrUpdate(report.Queue, x =>
-                {
-                    Metric.Gauge(report.Queue, () => queueLengths[report.Queue], Unit.Custom("Messages"));
-                    return length;
-                }, (key, v) => length);
+                queueState.Gauge(queue, () => GetQueueState(queue, linkState), messagesUnit);
             }
             return Task.CompletedTask;
         }
 
-        static long Calculate(IEnumerable<SequenceStateSnapshot> state)
+        static double GetQueueState(string queue, MetricsContext linkStateContext)
         {
-            return state.Sum(GetNumberOfInFlightMessages);
+            var linkStateGauges =
+                linkStateContext.DataProvider.CurrentMetricsData.Gauges.Where(g =>
+                    String.Equals(QueueTag(g.Tags), queue, StringComparison.OrdinalIgnoreCase));
+
+            var inFlight = linkStateGauges.Select(g => g.Value);
+            return inFlight.Sum();
         }
 
-        static int GetNumberOfInFlightMessages(SequenceStateSnapshot sequenceStateSnapshot)
+        static double GetNumberOfInFlightMessages(string sequenceKey, MetricsContext receiveStateContext, MetricsContext sendStateContext)
         {
-            var mostRecentDataPoints = sequenceStateSnapshot.SourceValues.OrderByDescending(x => x.Value).Take(2).ToArray();
-            if (mostRecentDataPoints.Length == 0)
+            var receiveGauge =
+                receiveStateContext.DataProvider.CurrentMetricsData.Gauges.First(g => g.Name == sequenceKey);
+            var sentGauge =
+                sendStateContext.DataProvider.CurrentMetricsData.Gauges.FirstOrDefault(g => g.Name == sequenceKey);
+
+            if (sentGauge == null)
             {
                 return 0;
             }
-
-            if (mostRecentDataPoints.Length == 1)
-            {
-                return (int) (mostRecentDataPoints[0].Value - sequenceStateSnapshot.DestinationValue.Value);
-            }
-
-            var difference = mostRecentDataPoints[0].Value - mostRecentDataPoints[1].Value;
-            var time = (mostRecentDataPoints[0].Timestamp - mostRecentDataPoints[1].Timestamp).TotalSeconds;
-
-            var throughput = difference/time;
-
-            var delay = (sequenceStateSnapshot.DestinationValue.Timestamp - mostRecentDataPoints[0].Timestamp).TotalSeconds;
-
-            var estimatedNumberOfGeneratedMessages = (int) (delay*throughput);
-
-            return (int)mostRecentDataPoints[0].Value + estimatedNumberOfGeneratedMessages - (int)sequenceStateSnapshot.DestinationValue.Value;
+            return sentGauge.Value - receiveGauge.Value;
         }
 
+        static double GetHighestSequenceNumber(string sequenceKey, MetricsContext metricsContext, string type)
+        {
+            var data = metricsContext.DataProvider.CurrentMetricsData;
+
+            var matchingType = data.Flatten()
+                .Gauges.Where(g => g.Tags.Contains(type));
+
+            var receiveSideLinkStateForThisQueue = matchingType
+                .Where(g => g.Name == sequenceKey)
+                .Select(g => g.Value);
+
+            return receiveSideLinkStateForThisQueue.Max();
+        }
+
+        static string QueueTag(string[] tags)
+        {
+            var queueTag = tags.FirstOrDefault(t => t.StartsWith("queue:", StringComparison.OrdinalIgnoreCase));
+            return queueTag?.Substring(6);
+        }
+        
         static T Deserialize<T>(MessageContext context)
         {
             return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(context.Body));
