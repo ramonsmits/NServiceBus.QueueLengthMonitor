@@ -34,6 +34,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Metrics, Version=0.4.8.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Metrics.NET.0.4.8\lib\net45\Metrics.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NServiceBus.Core, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <HintPath>..\packages\NServiceBus.6.0.2\lib\net452\NServiceBus.Core.dll</HintPath>
       <Private>True</Private>
@@ -60,6 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PerformanceCounters.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -68,6 +73,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Metrics.NET.PerformanceCounters\Metrics.NET.PerformanceCounters.csproj">
+      <Project>{ae658c6c-6aa7-4fac-bcfe-6ac341d70dad}</Project>
+      <Name>Metrics.NET.PerformanceCounters</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NServiceBus.QueueLengthMonitor.PlugIn\NServiceBus.QueueLengthMonitor.PlugIn.csproj">
       <Project>{675fc489-ef50-42fa-ab9b-d7462e02434e}</Project>
       <Name>NServiceBus.QueueLengthMonitor.PlugIn</Name>

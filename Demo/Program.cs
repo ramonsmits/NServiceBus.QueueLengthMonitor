@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Metrics;
+using Metrics.MetricData;
+using Metrics.NET.PerformanceCounters;
 using NServiceBus;
 using NServiceBus.Features;
 using NServiceBus.QueueLengthMonitor.PlugIn;
@@ -12,12 +15,14 @@ namespace Demo
     {
         static void Main(string[] args)
         {
+            PerformanceCounters.EnsureCreated();
+
             Start().GetAwaiter().GetResult();
         }
 
         static async Task Start()
         {
-            //var monitor = await StartMonitor().ConfigureAwait(false);
+            var monitor = await StartMonitor().ConfigureAwait(false);
 
             var receiverConfig = PrepareConfiguration("Receiver");
             var anotherReceiverConfig = PrepareConfiguration("AnotherReceiver");
@@ -42,7 +47,7 @@ namespace Demo
             await sender.Stop().ConfigureAwait(false);
             await receiver.Stop().ConfigureAwait(false);
             await anotherReceiver.Stop().ConfigureAwait(false);
-            //await monitor.Stop();
+            await monitor.Stop();
         }
 
         static EndpointConfiguration PrepareConfiguration(string endpointName)
@@ -59,8 +64,19 @@ namespace Demo
 
         static async Task<IRawEndpointInstance> StartMonitor()
         {
-            var monitor = new NServiceBus.QueueLengthMonitor.Monitor();
+            var queueMonitorContext = new DefaultMetricsContext("QueueLengthMonitor");
+            new MetricsConfig(queueMonitorContext)
+                .WithHttpEndpoint("http://localhost:7777/QueueLengthMonitor/")
+                .WithReporting(r =>
+                {
+                    r.WithReport(
+                        new PerformaceCounterReporter(x => new CounterInstanceName("Queue Length", x.MetricName)),
+                        TimeSpan.FromSeconds(5), Filter.New.WhereContext(c =>  c == "QueueLengthMonitor" || c == "QueueState"));
+                });
+
+            var monitor = new NServiceBus.QueueLengthMonitor.Monitor(queueMonitorContext);
             var config = RawEndpointConfiguration.Create("QueueLengthMonitor", monitor.OnMessage);
+            config.LimitMessageProcessingConcurrencyTo(1);
             config.UseTransport<MsmqTransport>();
             //config.UseTransport<RabbitMQTransport>().ConnectionString("host=localhost");
             config.SendFailedMessagesTo("error");
@@ -69,6 +85,38 @@ namespace Demo
             return endpoint;
         }
 
+        class QueueLengthFilter : MetricsFilter
+        {
+            public bool IsMatch(string context)
+            {
+                return false;
+            }
+
+            public bool IsMatch(GaugeValueSource gauge)
+            {
+                return false;
+            }
+
+            public bool IsMatch(CounterValueSource counter)
+            {
+                return false;
+            }
+
+            public bool IsMatch(MeterValueSource meter)
+            {
+                return false;
+            }
+
+            public bool IsMatch(HistogramValueSource histogram)
+            {
+                return false;
+            }
+
+            public bool IsMatch(TimerValueSource timer)
+            {
+                return false;
+            }
+        }
 
         static void ConfigureTransportAndRouting(EndpointConfiguration config)
         {
