@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using Metrics.Core;
 using Metrics.MetricData;
 
-namespace NServiceBus.QueueLengthMonitor
+namespace ServiceControl.Monitoring
 {
     class NServiceBusReceivedMetricContext : ReadOnlyMetricsContext, MetricsDataProvider
     {

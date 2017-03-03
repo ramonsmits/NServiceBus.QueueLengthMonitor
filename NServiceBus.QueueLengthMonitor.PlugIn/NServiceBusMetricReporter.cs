@@ -10,7 +10,7 @@ using NServiceBus.Extensibility;
 using NServiceBus.Routing;
 using NServiceBus.Transport;
 
-namespace NServiceBus.QueueLengthMonitor.PlugIn
+namespace NServiceBus.Monitoring
 {
     public class NServiceBusMetricReporter : MetricsReport
     {

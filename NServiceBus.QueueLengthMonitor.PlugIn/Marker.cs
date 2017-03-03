@@ -5,7 +5,7 @@ using Metrics;
 using NServiceBus.Routing;
 using NServiceBus.Transport;
 
-namespace NServiceBus.QueueLengthMonitor.PlugIn
+namespace NServiceBus.Monitoring
 {
     class Marker
     {

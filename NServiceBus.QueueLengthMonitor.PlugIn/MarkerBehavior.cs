@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Metrics;
 using NServiceBus.Pipeline;
 
-namespace NServiceBus.QueueLengthMonitor.PlugIn
+namespace NServiceBus.Monitoring
 {
     class MarkerBehavior : Behavior<IDispatchContext>
     {

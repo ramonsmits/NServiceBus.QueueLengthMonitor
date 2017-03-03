@@ -6,8 +6,10 @@ using Metrics.MetricData;
 using Metrics.NET.PerformanceCounters;
 using NServiceBus;
 using NServiceBus.Features;
-using NServiceBus.QueueLengthMonitor.PlugIn;
+using NServiceBus.Monitoring;
 using NServiceBus.Raw;
+using ServiceControl.Monitoring;
+using Monitor = ServiceControl.Monitoring.Monitor;
 
 namespace Demo
 {
@@ -74,7 +76,7 @@ namespace Demo
                         TimeSpan.FromSeconds(5), Filter.New.WhereContext(c =>  c == "QueueLengthMonitor" || c == "QueueState"));
                 });
 
-            var monitor = new NServiceBus.QueueLengthMonitor.Monitor(queueMonitorContext);
+            var monitor = new Monitor(queueMonitorContext, new QueueLength());
             var config = RawEndpointConfiguration.Create("QueueLengthMonitor", monitor.OnMessage);
             config.LimitMessageProcessingConcurrencyTo(1);
             config.UseTransport<MsmqTransport>();

@@ -1,7 +1,7 @@
 ﻿using NServiceBus.Configuration.AdvanceExtensibility;
 using NServiceBus.Features;
 
-namespace NServiceBus.QueueLengthMonitor.PlugIn
+namespace NServiceBus.Monitoring
 {
     public static class QueueLengthMonitorFeatureExtensions
     {

@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.QueueLengthMonitor", "NServiceBus.QueueLengthMonitor\NServiceBus.QueueLengthMonitor.csproj", "{0FE43F9E-0D23-42A5-BFE9-E92E4905D1DC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.Monitoring", "NServiceBus.QueueLengthMonitor\ServiceControl.Monitoring.csproj", "{0FE43F9E-0D23-42A5-BFE9-E92E4905D1DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.QueueLengthMonitor.PlugIn", "NServiceBus.QueueLengthMonitor.PlugIn\NServiceBus.QueueLengthMonitor.PlugIn.csproj", "{675FC489-EF50-42FA-AB9B-D7462E02434E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.Monitoring", "NServiceBus.QueueLengthMonitor.PlugIn\NServiceBus.Monitoring.csproj", "{675FC489-EF50-42FA-AB9B-D7462E02434E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "Demo\Demo.csproj", "{4523FE9B-893F-4878-941E-8722FEA7F77D}"
 EndProject

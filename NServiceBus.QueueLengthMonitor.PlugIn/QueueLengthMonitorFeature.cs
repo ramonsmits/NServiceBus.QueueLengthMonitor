@@ -6,7 +6,7 @@ using NServiceBus.Hosting;
 using NServiceBus.Settings;
 using NServiceBus.Transport;
 
-namespace NServiceBus.QueueLengthMonitor.PlugIn
+namespace NServiceBus.Monitoring
 {
     class QueueLengthMonitorFeature : Feature
     {

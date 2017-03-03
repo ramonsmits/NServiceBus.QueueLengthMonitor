@@ -77,13 +77,13 @@
       <Project>{ae658c6c-6aa7-4fac-bcfe-6ac341d70dad}</Project>
       <Name>Metrics.NET.PerformanceCounters</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NServiceBus.QueueLengthMonitor.PlugIn\NServiceBus.QueueLengthMonitor.PlugIn.csproj">
+    <ProjectReference Include="..\NServiceBus.QueueLengthMonitor.PlugIn\NServiceBus.Monitoring.csproj">
       <Project>{675fc489-ef50-42fa-ab9b-d7462e02434e}</Project>
-      <Name>NServiceBus.QueueLengthMonitor.PlugIn</Name>
+      <Name>NServiceBus.Monitoring</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NServiceBus.QueueLengthMonitor\NServiceBus.QueueLengthMonitor.csproj">
+    <ProjectReference Include="..\NServiceBus.QueueLengthMonitor\ServiceControl.Monitoring.csproj">
       <Project>{0fe43f9e-0d23-42a5-bfe9-e92e4905d1dc}</Project>
-      <Name>NServiceBus.QueueLengthMonitor</Name>
+      <Name>ServiceControl.Monitoring</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
