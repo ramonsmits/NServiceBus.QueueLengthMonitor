@@ -15,7 +15,7 @@ namespace ServiceControl.Monitoring
             get
             {
                 var contextsList = contexts.Select(pair => pair.Value).ToList();
-                return new MetricsData("NServiceBus.Endpoints", DateTime.Now, Enumerable.Empty<EnvironmentEntry>(), Enumerable.Empty<GaugeValueSource>(),
+                return new MetricsData("NServiceBus.Endpoints", DateTime.UtcNow, Enumerable.Empty<EnvironmentEntry>(), Enumerable.Empty<GaugeValueSource>(),
                     Enumerable.Empty<CounterValueSource>(), Enumerable.Empty<MeterValueSource>(), Enumerable.Empty<HistogramValueSource>(), 
                     Enumerable.Empty<TimerValueSource>(), contextsList);
             }
