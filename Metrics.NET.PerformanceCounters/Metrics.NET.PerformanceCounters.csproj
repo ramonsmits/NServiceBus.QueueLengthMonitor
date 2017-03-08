@@ -46,7 +46,7 @@
   <ItemGroup>
     <Compile Include="CounterInstanceName.cs" />
     <Compile Include="MetricInfo.cs" />
-    <Compile Include="PerformaceCounterReporter.cs" />
+    <Compile Include="PerformanceCounterReporter.cs" />
     <Compile Include="IPerformanceCounterInstance.cs" />
     <Compile Include="NonFunctionalPerformanceCounterInstance.cs" />
     <Compile Include="PerformanceCounterHelper.cs" />

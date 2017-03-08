@@ -72,7 +72,7 @@ namespace Demo
                 .WithReporting(r =>
                 {
                     r.WithReport(
-                        new PerformaceCounterReporter(x => new CounterInstanceName("Queue Length", x.MetricName)),
+                        new PerformanceCounterReporter(x => new CounterInstanceName("Queue Length", x.MetricName)),
                         TimeSpan.FromSeconds(5), Filter.New.WhereContext(c =>  c == "QueueLengthMonitor" || c == "QueueState"));
                 });
 

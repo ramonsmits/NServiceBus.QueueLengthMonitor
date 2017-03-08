@@ -6,11 +6,11 @@ using Metrics.Reporters;
 
 namespace Metrics.NET.PerformanceCounters
 {
-    public class PerformaceCounterReporter : MetricsReport
+    public class PerformanceCounterReporter : MetricsReport
     {
         Func<MetricInfo, CounterInstanceName> counterInstanceNameProvider;
 
-        public PerformaceCounterReporter(Func<MetricInfo, CounterInstanceName> counterInstanceNameProvider)
+        public PerformanceCounterReporter(Func<MetricInfo, CounterInstanceName> counterInstanceNameProvider)
         {
             this.counterInstanceNameProvider = counterInstanceNameProvider;
         }
